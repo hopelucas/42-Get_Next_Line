@@ -3,77 +3,77 @@
 /*                                                        :::      ::::::::   */
 /*   get_next_line.c                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: prossi <marvin@42.fr>                      +#+  +:+       +#+        */
+/*   By: hlucas <marvin@42.fr>                      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2021/10/05 09:56:49 by prossi            #+#    #+#             */
-/*   Updated: 2021/10/21 18:04:38 by prossi           ###   ########.fr       */
+/*   Created: 2022/01/11 16:32:12 by hlucas            #+#    #+#             */
+/*   Updated: 2022/01/11 16:53:57 by hlucas           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "get_next_line.h"	
 
-static char	*function_name(int fd, char *buf, char *backup)
+static char	*read_and_add(int fd, char *buffer, char *remaining)
 {
-	int		read_line;
+	int		bytes_read;
 	char	*char_temp;
 
-	read_line = 1;
-	while (read_line != '\0')
+	bytes_read = 1;
+	while (bytes_read != '\0')
 	{
-		read_line = read(fd, buf, BUFFER_SIZE);
-		if (read_line == -1)
+		bytes_read = read(fd, buffer, BUFFER_SIZE);
+		if (bytes_read == -1)
 			return (0);
-		else if (read_line == 0)
+		else if (bytes_read == 0)
 			break ;
-		buf[read_line] = '\0';
-		if (!backup)
-			backup = ft_strdup("");
-		char_temp = backup;
-		backup = ft_strjoin(char_temp, buf);
+		buffer[bytes_read] = '\0';
+		if (!remaining)
+			remaining = ft_strdup("");
+		char_temp = remaining;
+		remaining = ft_strjoin(char_temp, buffer);
 		free(char_temp);
 		char_temp = NULL;
-		if (ft_strchr (buf, '\n'))
+		if (ft_strchr (buffer, '\n'))
 			break ;
 	}
-	return (backup);
+	return (remaining);
 }
 
-static char	*extract(char *line)
+static char	*update_next_line(char *line)
 {
 	size_t	count;
-	char	*backup;
+	char	*remaining;
 
 	count = 0;
 	while (line[count] != '\n' && line[count] != '\0')
 		count++;
 	if (line[count] == '\0' || line[1] == '\0')
 		return (0);
-	backup = ft_substr(line, count + 1, ft_strlen(line) - count);
-	if (*backup == '\0')
+	remaining = ft_substr(line, count + 1, ft_strlen(line) - count);
+	if (*remaining == '\0')
 	{
-		free(backup);
-		backup = NULL;
+		free(remaining);
+		remaining = NULL;
 	}
 	line[count + 1] = '\0';
-	return (backup);
+	return (remaining);
 }
 
 char	*get_next_line(int fd)
 {
 	char		*line;
-	char		*buf;
-	static char	*backup;
+	char		*buffer;
+	static char	*remaining;
 
 	if (fd < 0 || BUFFER_SIZE <= 0)
 		return (0);
-	buf = (char *)malloc(sizeof(char) * (BUFFER_SIZE + 1));
-	if (!buf)
+	buffer = (char *)malloc(sizeof(char) * (BUFFER_SIZE + 1));
+	if (!buffer)
 		return (0);
-	line = function_name(fd, buf, backup);
-	free(buf);
-	buf = NULL;
+	line = read_and_add(fd, buffer, remaining);
+	free(buffer);
+	buffer = NULL;
 	if (!line)
 		return (NULL);
-	backup = extract(line);
+	remaining = update_next_line(line);
 	return (line);
 }
