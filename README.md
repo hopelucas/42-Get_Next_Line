@@ -15,7 +15,9 @@ This project reads the file descriptor and returns it as a line.
 ## Method
 ### Planning
 ### Testing
+Use ```make gnl```
 ### Testers Used
+https://github.com/Abaker-Hype/42-Cursus-Tester
 
 ## Result
 
